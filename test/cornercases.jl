@@ -49,7 +49,7 @@ function maxPop(pop)
     max=[]
     for i in 1:n
         sort!(pop,by=x->x.fitness[i])
-        max.append(pop[end])
+        push!(max,pop[end])
     end
     return max
 end
@@ -59,7 +59,7 @@ function minPop(pop)
     min=[]
     for i in 1:n
         sort!(pop,by=x->x.fitness[i])
-        max.append(pop[1])
+        push!(min,pop[1])
     end
     return min
 end

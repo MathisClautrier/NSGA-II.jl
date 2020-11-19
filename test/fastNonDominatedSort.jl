@@ -5,6 +5,15 @@ using .NSGA-II
 include("./cornercases.jl")
 
 
+@testset "Domination" begin
+    A=[2,1,1]
+    B=[1,2,2]
+    @test dominates(A,B)==false
+    @test dominates(B,A)==false
+    C=[1,0,0]
+    @test dominates(A,C)==true
+    @test dominates(C,A)==false
+end
 
 @testset "fastNonDominatedSort" begin
     oneDimension,expectedRank1D=pop1D()

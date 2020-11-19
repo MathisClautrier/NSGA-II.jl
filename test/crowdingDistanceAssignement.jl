@@ -28,11 +28,11 @@ include("./cornercases.jl")
         @test x.distance==Inf
     end
     for x in oneDimension
-        @test x.distance=0
+        @test x.distance==0
     end
     equalMultipleDimension=subPopEqual3D()
     crowdingDistanceAssignement(equalMultipleDimension)
     for y in equalMultipleDimension
-        @test y.distance=0
+        @test y.distance==0
     end
 end
