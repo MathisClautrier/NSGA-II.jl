@@ -1,6 +1,5 @@
 using Test
-include("../src/NSGA-II.jl")
-using .NSGA-II
+using NSGAII
 
 include("./cornercases.jl")
 

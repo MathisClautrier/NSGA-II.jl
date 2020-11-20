@@ -1,6 +1,5 @@
 using Test
-include("../src/NSGA-II.jl")
-using .NSGA-II
+using NSGAII
 
 include("./cornercases.jl")
 
@@ -21,10 +20,10 @@ include("./cornercases.jl")
     end
     max3D=maxPop(multipleDimension)
     min3D=minPop(multipleDimension)
-    for x in max3D:
+    for x in max3D
         @test x.distance==Inf
     end
-    for x in min3D:
+    for x in min3D
         @test x.distance==Inf
     end
     for x in oneDimension
