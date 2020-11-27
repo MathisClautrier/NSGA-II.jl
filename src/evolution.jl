@@ -101,3 +101,21 @@ function fastNonDominatedSort!(e::NSGA2Evolution)
         Fi=Q
     end
 end
+
+
+function crowdingDistanceAssignement!(e::NSGA2Evolution,I) #TODO find a way to specify
+                                                           #I type
+    l=length(I)
+    for i in 1:e.config.d_fitness
+        sort!(I,by=x->x.fitness[i])
+        if I[1].fitness[i]!=I[end].fitness[i]
+            e.distance[objectid(I[1])]=Inf
+            e.distance[objectid(I[end])]=Inf
+            quot=I[end].fitness[i]-I[1].fitness[i]
+            for j in 2:l-1
+                e.distance[objectid(I[j])]=e.distance[objectid(I[j])]+
+                (I[j+1].fitness[i]-I[j-1].fitness[i])/quot
+            end
+        end
+    end
+end
