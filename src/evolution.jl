@@ -48,7 +48,8 @@ function NSGA2Population(e::NSGA2Evolution)
     e.population=Qt
 end
 
-function dominates(e::NSGA2Evolution,ind1::e.type,ind2::e.type)
+function dominates(e::NSGA2Evolution,ind1,ind2) #TODO Find a way to specify ind1,ind2 types,
+                                                #may be by using index in e.population?
     dom=false
     for i in 1:e.config.d_fitness
         if ind1.fitness[i]<ind2.fitness[i]
@@ -58,4 +59,45 @@ function dominates(e::NSGA2Evolution,ind1::e.type,ind2::e.type)
         end
     end
     return dom
+end
+
+
+function fastNonDominatedSort!(e::NSGA2Evolution)
+
+    Fi=Array{e.type}(undef,0)
+
+    n=Dict(objectid(x)=>0 for x in e.population)
+    S=Dict(objectid(x)=>Array{e.type}(undef,0) for x in e.population)
+
+    for ind1 in e.population
+        for ind2 in e.population
+            if dominates(e,ind1,ind2)
+                push!(S[objectid(ind1)],ind2)
+            elseif dominates(e,ind2,ind1)
+                n[objectid(ind1)]+=1
+            end
+        end
+        if n[objectid(ind1)]==0
+            e.rank[objectid(ind1)]=1
+            push!(Fi,ind1)
+        end
+    end
+
+    i=1
+
+    while isempty(Fi)==false
+        Q=Array{e.type}(undef,0)
+        for ind1 in Fi
+            currentS=S[objectid(ind1)]
+            for ind2 in currentS
+                n[objectid(ind2)]-=1
+                if n[objectid(ind2)]==0
+                    e.rank[objectid(ind2)]=i+1
+                    push!(Q,ind2)
+                end
+            end
+        end
+        i=i+1
+        Fi=Q
+    end
 end
