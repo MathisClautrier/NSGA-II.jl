@@ -1,30 +1,46 @@
 using Test
 using NSGAII
+using Statistics
+import Base.copy
+
 include("./cornercases.jl")
 
+fitness(x::FloatIndividual)=[mean(x.genes),std(x.genes),median(x.genes)]
+
+function copy(ind::FloatIndividual)
+    genes=deepcopy(ind.genes)
+    fitness=zeros(length(ind.fitness))
+    FloatIndividual(genes,fitness)
+end
+
+
 @testset "Populate" begin
-    pop=evolutionPop()
-    oldPop=copy(pop.population)
-    NSGA2Populate(pop)
+    cfg=Cambrian.get_config("./test.yaml";n_population= 7,d_fitness=3)
+    e=NSGA2Evolution(cfg,fitness)
+    oldPop=copy(e.population)
+    NSGA2Populate(e)
     for x in oldPop
-        @test x in pop.population
+        @test x in e.population
     end
-    @test length(pop.population)==2*length(oldPop)
+    @test length(e.population)==2*length(oldPop)
 end
 
 @testset "Generation" begin
-    pop=evolutionPop()
-    max=maxPop(pop.population)
-    n=length(pop)
-    NSGA2Generation(pop)
+    cfg=Cambrian.get_config("./test.yaml";n_population= 7,d_fitness=3)
+    e=NSGA2Evolution(cfg,fitness)
+    evaluate(e)
+    max=maxPop(e.population)
+    NSGA2Generation(e)
     for x in max
-        @test x in pop.population
+        @test x in e.population
     end
-    @test n == 2*length(pop.population)
-    pop=evolutionPop2() #the number of individus where rank=1 is greater than n.population, npopulation >2*d_fitness
-    max=maxPop(pop.population)
-    NSGA2Generation(pop)
-    for x in max
-        @test x in pop.population
-    end
+end
+
+@testset "Step" begin
+    cfg=Cambrian.get_config("./test.yaml";n_population= 7,d_fitness=3)
+    e=NSGA2Evolution(cfg,fitness)
+    step!(e)
+    @test length(e.population)==e.config.n_population
+    step!(e)
+    @test length(e.population)==e.config.n_population
 end

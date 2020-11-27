@@ -1,4 +1,4 @@
-export NSGA2Evolution
+export NSGA2Evolution,fastNonDominatedSort!,dominates,crowdingDistanceAssignement!,NSGA2Generation,NSGA2Populate
 
 import Cambrian.populate, Cambrian.evaluate,  Cambrian.selection, Cambrian.generation
 
@@ -9,9 +9,13 @@ mutable struct NSGA2Evolution{T} <: Cambrian.AbstractEvolution
     fitness::Function
     type::DataType
     rank::Dict{UInt64,Int64}
-    distance::Dict{Uint64,Float64}
+    distance::Dict{UInt64,Float64}
     gen::Int
 end
+
+populate(e::NSGA2Evolution) = NSGA2Populate(e)
+evaluate(e::NSGA2Evolution) = Cambrian.fitness_evaluate(e, e.fitness)
+generation(e::NSGA2Evolution) = NSGA2Generation(e)
 
 function NSGA2Evolution(cfg::NamedTuple, fitness::Function;
                       logfile=string("logs/", cfg.id, ".csv"))
@@ -23,7 +27,7 @@ function NSGA2Evolution(cfg::NamedTuple, fitness::Function;
     NSGA2Evolution(cfg, logger, population, fitness,type,rank,distance, 0)
 end
 
-function NSGA2Population(e::NSGA2Evolution)
+function NSGA2Populate(e::NSGA2Evolution)
     Qt=Array{e.type}(undef,0)
     for ind in e.population
         push!(Qt,ind)
@@ -104,7 +108,9 @@ end
 
 
 function crowdingDistanceAssignement!(e::NSGA2Evolution,I) #TODO find a way to specify
-                                                           #I type
+    for x in I
+        e.distance[objectid(x)]=0
+    end                                                       #I type
     l=length(I)
     for i in 1:e.config.d_fitness
         sort!(I,by=x->x.fitness[i])
@@ -146,7 +152,8 @@ function NSGA2Generation(e::NSGA2Evolution)
             sort!(I, by= x->e.distance[objectid(x)],rev=true)
             Pt1=[Pt1...,I[1:e.config.n_population-length(Pt1)]...]
         end
-        @assert length(Pt1)==e.config.n_population
+
         e.population=Pt1
+        @assert length(e.population)==e.config.n_population
     end
 end

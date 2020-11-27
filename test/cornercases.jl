@@ -1,11 +1,11 @@
-struct fakeIndividual
-    fitness::Array{Int64}
-    rank::Int64
-    distance::Float64
-end
+using Cambrian
+using NSGAII
+
+
+
 
 function pop3D()
-    liste=[]
+    liste=Array{Array{Int64,1}}(undef,0)
     n=1
     for i in 1:4
         push!(liste,[n,n,n])
@@ -14,34 +14,29 @@ function pop3D()
         push!(liste,[n,n,n+1])
         n+=1
     end
-    r=[1,1,1,2,3,3,3,4,5,5,5,6,7,7,7,8]
-    pop=[fakeIndividual(x,0,0.) for x in liste]
-    pop,r
+    r=reverse([1,1,1,2,3,3,3,4,5,5,5,6,7,7,7,8])
+    return liste,r
 end
 
 function pop1D()
     liste=[[i] for i in 1:20]
-    ranks=[i for i in 1:20]
-    pop=[fakeIndividual(x,0,0.) for x in liste]
-    pop,ranks
+    ranks=reverse([i for i in 1:20])
+    return liste,ranks
 end
 
 function subPop1D()
     liste=[[1],[1],[1]]
-    pop=[fakeIndividual(x,0,0.) for x in liste]
-    pop
+    return liste
 end
 
 function subPop3D()
     liste=[[5,3,4],[3,5,4],[2,4,5],[4,4,4],[4,4,4]]
-    pop=[fakeIndividual(x,0,0.) for x in liste]
-    pop
+    return liste
 end
 
 function subPopEqual3D()
-    liste=[[5,5,5] for i in range(8)]
-    pop=[fakeIndividual(x,0,0.) for x in liste]
-    pop
+    liste=[[5,5,5] for i in 1:8]
+    return liste
 end
 
 function maxPop(pop)
