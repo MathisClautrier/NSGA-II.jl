@@ -47,3 +47,15 @@ function NSGA2Population(e::NSGA2Evolution)
     e.distance=Dict(objectid(x)=>0. for x in Qt)
     e.population=Qt
 end
+
+function dominates(e::NSGA2Evolution,ind1::e.type,ind2::e.type)
+    dom=false
+    for i in 1:e.config.d_fitness
+        if ind1.fitness[i]<ind2.fitness[i]
+            return false
+        elseif ind1.fitness[i]>ind2.fitness[i]
+            dom=true
+        end
+    end
+    return dom
+end
