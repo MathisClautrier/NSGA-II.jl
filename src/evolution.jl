@@ -119,3 +119,34 @@ function crowdingDistanceAssignement!(e::NSGA2Evolution,I) #TODO find a way to s
         end
     end
 end
+
+function NSGA2Generation(e::NSGA2Evolution)
+    if e.gen>1
+        fastNonDominatedSort!(e)
+        Pt1=Array{e.type}(undef,0)
+        i=1
+        sort!(e.population,by= x -> e.rank[objectid(x)])
+        rank=1
+        indIni=1
+        indNext=findlast(x -> e.rank[objectid(x)] == rank , e.population)
+        while indNext < e.config.n_population
+            Pt1=[Pt1...,e.population[indIni:indNext]...]
+            rank+=1
+            indIni=indNext+1
+            indNext=findlast(x -> e.rank[objectid(x)] == rank, e.population)
+        end
+        if isempty(Pt1)
+            I=e.population[1:indNext]
+            crowdingDistanceAssignement!(e,I)
+            sort!(I, by= x->e.distance[objectid(x)],rev=true)
+            Pt1=I[1:e.config.n_population]
+        else
+            I=e.population[indIni:indNext]
+            crowdingDistanceAssignement!(e,I)
+            sort!(I, by= x->e.distance[objectid(x)],rev=true)
+            Pt1=[Pt1...,I[1:e.config.n_population-length(Pt1)]...]
+        end
+        @assert length(Pt1)==e.config.n_population
+        e.population=Pt1
+    end
+end
