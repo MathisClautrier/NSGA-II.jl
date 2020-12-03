@@ -16,7 +16,7 @@ end
 
 @testset "Populate" begin
     cfg=Cambrian.get_config("./test.yaml";n_population= 7,d_fitness=3)
-    e=NSGA2Evolution(cfg,fitness)
+    e=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     oldPop=copy(e.population)
     NSGA2Populate(e)
     for x in oldPop
@@ -27,7 +27,7 @@ end
 
 @testset "Generation" begin
     cfg=Cambrian.get_config("./test.yaml";n_population= 7,d_fitness=3)
-    e=NSGA2Evolution(cfg,fitness)
+    e=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     evaluate(e)
     max=maxPop(e.population)
     NSGA2Generation(e)
@@ -38,7 +38,7 @@ end
 
 @testset "Step" begin
     cfg=Cambrian.get_config("./test.yaml";n_population= 7,d_fitness=3)
-    e=NSGA2Evolution(cfg,fitness)
+    e=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     step!(e)
     @test length(e.population)==e.config.n_population
     step!(e)

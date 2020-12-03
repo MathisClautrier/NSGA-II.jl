@@ -7,7 +7,7 @@ include("./cornercases.jl")
     L=[[2,1,1],[1,2,2],[1,0,0]]
     fitness(x::FloatIndividual)=0
     cfg=Cambrian.get_config("./test.yaml";n_population= 3,d_fitness=3)
-    e=NSGA2Evolution(cfg,fitness)
+    e=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     for i in 1:3
         copyto!(e.population[i].fitness,L[i])
     end
@@ -22,7 +22,7 @@ end
     fitness2,ranks2=pop3D()
     fitness(x::FloatIndividual)=0
     cfg=Cambrian.get_config("./test.yaml";n_population= 20,d_fitness=1)
-    e=NSGA2Evolution(cfg,fitness)
+    e=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     for i in 1:20
         copyto!(e.population[i].fitness,fitness1[i])
     end
@@ -37,7 +37,7 @@ end
     end
 
     cfg=Cambrian.get_config("./test.yaml";n_population= 16,d_fitness=3)
-    e=NSGA2Evolution(cfg,fitness)
+    e=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     for i in 1:16
         copyto!(e.population[i].fitness,fitness2[i])
     end

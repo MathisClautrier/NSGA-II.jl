@@ -2,33 +2,33 @@ export NSGA2Evolution,fastNonDominatedSort!,dominates,crowdingDistanceAssignemen
 
 import Cambrian.populate, Cambrian.evaluate,  Cambrian.selection, Cambrian.generation
 
-mutable struct NSGA2Evolution{T} <: Cambrian.AbstractEvolution
+mutable struct NSGA2Evolution{T<:Individual} <: Cambrian.AbstractEvolution
     config::NamedTuple
     logger::CambrianLogger
     population::Array{T}
     fitness::Function
-    type::DataType
     rank::Dict{UInt64,Int64}
     distance::Dict{UInt64,Float64}
     gen::Int
 end
 
+
 populate(e::NSGA2Evolution) = NSGA2Populate(e)
 evaluate(e::NSGA2Evolution) = Cambrian.fitness_evaluate(e, e.fitness)
 generation(e::NSGA2Evolution) = NSGA2Generation(e)
 
-function NSGA2Evolution(cfg::NamedTuple, fitness::Function;
-                      logfile=string("logs/", cfg.id, ".csv"))
+function NSGA2Evolution{T}(cfg::NamedTuple, fitness::Function;
+                      logfile=string("logs/", cfg.id, ".csv")) where {T <: Individual}
     logger = CambrianLogger(logfile)
-    type=eval(Meta.parse(cfg.ind_type))
-    population = Cambrian.initialize(type, cfg)
+    population = Cambrian.initialize(T, cfg)
     rank=Dict{UInt64,Int64}()
     distance=Dict{UInt64,Float64}()
-    NSGA2Evolution(cfg, logger, population, fitness,type,rank,distance, 0)
+    NSGA2Evolution(cfg, logger, population, fitness,rank,distance, 0)
 end
 
 function NSGA2Populate(e::NSGA2Evolution)
-    Qt=Array{e.type}(undef,0)
+    T=typeof(e.population[1])
+    Qt=Array{T}(undef,0)
     for ind in e.population
         push!(Qt,ind)
     end
@@ -67,11 +67,11 @@ end
 
 
 function fastNonDominatedSort!(e::NSGA2Evolution)
-
-    Fi=Array{e.type}(undef,0)
+    T=typeof(e.population[1])
+    Fi=Array{T}(undef,0)
 
     n=Dict(objectid(x)=>0 for x in e.population)
-    S=Dict(objectid(x)=>Array{e.type}(undef,0) for x in e.population)
+    S=Dict(objectid(x)=>Array{T}(undef,0) for x in e.population)
 
     for ind1 in e.population
         for ind2 in e.population
@@ -90,7 +90,7 @@ function fastNonDominatedSort!(e::NSGA2Evolution)
     i=1
 
     while isempty(Fi)==false
-        Q=Array{e.type}(undef,0)
+        Q=Array{T}(undef,0)
         for ind1 in Fi
             currentS=S[objectid(ind1)]
             for ind2 in currentS
@@ -128,8 +128,9 @@ end
 
 function NSGA2Generation(e::NSGA2Evolution)
     if e.gen>1
+        T=typeof(e.population[1])
         fastNonDominatedSort!(e)
-        Pt1=Array{e.type}(undef,0)
+        Pt1=Array{T}(undef,0)
         i=1
         sort!(e.population,by= x -> e.rank[objectid(x)])
         rank=1
