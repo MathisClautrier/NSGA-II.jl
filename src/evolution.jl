@@ -67,7 +67,6 @@ function NSGA2Populate(e::NSGA2Evolution)
             i+=1
         end
     end
-    @assert length(Qt)==e.config.n_population + e.config.n_offsprings
     e.rank=Dict(objectid(x)=>0 for x in Qt)
     e.distance=Dict(objectid(x)=>0. for x in Qt)
     e.population=Qt
@@ -173,9 +172,7 @@ function NSGA2Generation(e::NSGA2Evolution)
             sort!(I, by= x->e.distance[objectid(x)],rev=true)
             Pt1=[Pt1...,I[1:e.config.n_population-length(Pt1)]...]
         end
-
         e.population=Pt1
         e.offsprings=Dict(objectid(x)=>false for x in e.population)
-        @assert length(e.population)==e.config.n_population
     end
 end

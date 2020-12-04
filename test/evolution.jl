@@ -22,6 +22,11 @@ end
     for x in oldPop
         @test x in e.population
     end
+    for x in e.population
+        if x in oldPop == false
+            @test e.offsprings[objectid(x)]==true
+        end
+    end
     @test length(e.population)==length(oldPop)+5
 end
 
@@ -64,4 +69,7 @@ end
     @test length(e.population)==e.config.n_population
     step!(e)
     @test length(e.population)==e.config.n_population
+    for x in e.population
+        @test e.offsprings[objectid(x)]==false
+    end
 end
