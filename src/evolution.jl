@@ -7,6 +7,7 @@ mutable struct NSGA2Evolution{T<:Individual} <: Cambrian.AbstractEvolution
     logger::CambrianLogger
     population::Array{T}
     fitness::Function
+    type::DataType
     rank::Dict{UInt64,Int64}
     distance::Dict{UInt64,Float64}
     gen::Int
@@ -29,7 +30,7 @@ function NSGA2Evolution{T}(cfg::NamedTuple, fitness::Function;
     for x in population
         offsprings[objectid(x)]=true
     end
-    NSGA2Evolution(cfg, logger, population, fitness,rank,distance, 0, offsprings)
+    NSGA2Evolution(cfg, logger, population, fitness,T,rank,distance, 0, offsprings)
 end
 
 function NSGA2Evaluate(e::NSGA2Evolution)
@@ -72,8 +73,7 @@ function NSGA2Populate(e::NSGA2Evolution)
     e.population=Qt
 end
 
-function dominates(e::NSGA2Evolution,ind1,ind2) #TODO Find a way to specify ind1,ind2 types,
-                                                #may be by using index in e.population?
+function dominates(e::NSGA2Evolution,ind1::T,ind2::T) where {T <: Individual}
     dom=false
     for i in 1:e.config.d_fitness
         if ind1.fitness[i]<ind2.fitness[i]
@@ -126,10 +126,10 @@ function fastNonDominatedSort!(e::NSGA2Evolution)
     end
 end
 
-function crowdingDistanceAssignement!(e::NSGA2Evolution,I) #TODO find a way to specify
+function crowdingDistanceAssignement!(e::NSGA2Evolution,I::Array{T}) where {T <: Individual}
     for x in I
         e.distance[objectid(x)]=0
-    end                                                       #I type
+    end
     l=length(I)
     for i in 1:e.config.d_fitness
         sort!(I,by=x->x.fitness[i])
