@@ -37,6 +37,7 @@ function NSGA2Evaluate(e::NSGA2Evolution)
     for i in eachindex(e.population)
         if e.offsprings[objectid(e.population[i])]
             e.population[i].fitness[:] = e.fitness(e.population[i])[:]
+            e.offsprings[objectid(e.population[i])]=false
         end
     end
 end
