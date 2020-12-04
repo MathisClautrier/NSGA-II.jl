@@ -8,7 +8,7 @@ include("./cornercases.jl")
 
 @testset "crowdingDistanceAssignement" begin
     fitness1D=subPop1D()
-    cfg=Cambrian.get_config("./test.yaml";n_population= 3,d_fitness=1)
+    cfg=Cambrian.get_config("./test.yaml";n_population= 3,n_offsprings=2,d_fitness=1)
     fitness(x::FloatIndividual)=0
     dim1=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     oldPop1D=copy(dim1.population)
@@ -25,7 +25,7 @@ include("./cornercases.jl")
     end
 
     fitness3D=subPop3D()
-    cfg=Cambrian.get_config("./test.yaml";n_population= 5,d_fitness=3)
+    cfg=Cambrian.get_config("./test.yaml";n_population= 5,n_offsprings=5,d_fitness=3)
     dim3=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     oldPop3D=copy(dim3.population)
     for i in 1:5
@@ -46,7 +46,7 @@ include("./cornercases.jl")
     end
 
     fitnessEQ=subPopEqual3D()
-    cfg=Cambrian.get_config("./test.yaml";n_population= 8,d_fitness=3)
+    cfg=Cambrian.get_config("./test.yaml";n_population= 8,n_offsprings=5,d_fitness=3)
     equal=NSGA2Evolution{FloatIndividual}(cfg,fitness)
     for i in 1:8
         copyto!(equal.population[i].fitness,fitnessEQ[i])

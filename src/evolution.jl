@@ -1,4 +1,4 @@
-export NSGA2Evolution,fastNonDominatedSort!,dominates,crowdingDistanceAssignement!,NSGA2Generation,NSGA2Populate
+export NSGA2Evolution,fastNonDominatedSort!,dominates,crowdingDistanceAssignement!,NSGA2Generation,NSGA2Populate,NSGA2Evaluate
 
 import Cambrian.populate, Cambrian.evaluate,  Cambrian.selection, Cambrian.generation
 
@@ -10,12 +10,14 @@ mutable struct NSGA2Evolution{T<:Individual} <: Cambrian.AbstractEvolution
     rank::Dict{UInt64,Int64}
     distance::Dict{UInt64,Float64}
     gen::Int
+    offsprings::Dict{UInt64,Bool}
 end
 
 
 populate(e::NSGA2Evolution) = NSGA2Populate(e)
-evaluate(e::NSGA2Evolution) = Cambrian.fitness_evaluate(e, e.fitness)
+evaluate(e::NSGA2Evolution) = NSGA2Evaluate(e)
 generation(e::NSGA2Evolution) = NSGA2Generation(e)
+
 
 function NSGA2Evolution{T}(cfg::NamedTuple, fitness::Function;
                       logfile=string("logs/", cfg.id, ".csv")) where {T <: Individual}
@@ -23,7 +25,19 @@ function NSGA2Evolution{T}(cfg::NamedTuple, fitness::Function;
     population = Cambrian.initialize(T, cfg)
     rank=Dict{UInt64,Int64}()
     distance=Dict{UInt64,Float64}()
-    NSGA2Evolution(cfg, logger, population, fitness,rank,distance, 0)
+    offsprings=Dict{UInt64,Bool}()
+    for x in population
+        offsprings[objectid(x)]=true
+    end
+    NSGA2Evolution(cfg, logger, population, fitness,rank,distance, 0, offsprings)
+end
+
+function NSGA2Evaluate(e::NSGA2Evolution)
+    for i in eachindex(e.population)
+        if e.offsprings[objectid(e.population[i])]
+            e.population[i].fitness[:] = e.fitness(e.population[i])[:]
+        end
+    end
 end
 
 function NSGA2Populate(e::NSGA2Evolution)
@@ -32,21 +46,28 @@ function NSGA2Populate(e::NSGA2Evolution)
     for ind in e.population
         push!(Qt,ind)
     end
-    for i in 1:e.config.n_population
-        if e.config.p_crossover > 0 && rand() < e.config.p_crossover
-            parents = vcat(p1, [selection(e.population) for i in 2:e.config.n_parents])
-            child = crossover(parents...)
+    i=0
+    while i < e.config.n_offsprings
+        parents =  [selection(e.population) for i in 1:2]
+        if  rand() < e.config.p_crossover
+            child1,child2 = crossover(parents...)
         else
-            p1=selection(e.population)
-            child= copy(p1)
+            child1,child2= copy(parents[1]),copy(parents[2])
         end
-        if e.config.p_mutation > 0 && rand() < e.config.p_mutation
-            child = mutate(child)
+        if rand() < e.config.p_mutation
+            child1 = mutate(child1)
+            child2 = mutate(child2)
         end
-
-        push!(Qt,child)
+        push!(Qt,child1)
+        e.offsprings[objectid(child1)]=true
+        i+=1
+        if i < e.config.n_offsprings
+            push!(Qt,child2)
+            e.offsprings[objectid(child2)]=true
+            i+=1
+        end
     end
-    @assert length(Qt)==2*e.config.n_population
+    @assert length(Qt)==e.config.n_population + e.config.n_offsprings
     e.rank=Dict(objectid(x)=>0 for x in Qt)
     e.distance=Dict(objectid(x)=>0. for x in Qt)
     e.population=Qt
@@ -106,7 +127,6 @@ function fastNonDominatedSort!(e::NSGA2Evolution)
     end
 end
 
-
 function crowdingDistanceAssignement!(e::NSGA2Evolution,I) #TODO find a way to specify
     for x in I
         e.distance[objectid(x)]=0
@@ -155,6 +175,7 @@ function NSGA2Generation(e::NSGA2Evolution)
         end
 
         e.population=Pt1
+        e.offsprings=Dict(objectid(x)=>false for x in e.population)
         @assert length(e.population)==e.config.n_population
     end
 end
