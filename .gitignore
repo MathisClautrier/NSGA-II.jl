@@ -24,5 +24,10 @@ docs/site/
 Manifest.toml
 
 logs/*
+*/logs/*
 gens/*
 ale.cfg
+Graphes/*
+scripts/fitness_gen_csv.jl
+scripts/print_ind.jl
+Generation_fitness/*

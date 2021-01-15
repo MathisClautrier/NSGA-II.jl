@@ -1,6 +1,7 @@
 export NSGA2Evolution,fastNonDominatedSort!,dominates,crowdingDistanceAssignement!,NSGA2Generation,NSGA2Populate,NSGA2Evaluate
 
 import Cambrian.populate, Cambrian.evaluate,  Cambrian.selection, Cambrian.generation
+import Cambrian.isless
 
 mutable struct NSGA2Evolution{T<:Individual} <: Cambrian.AbstractEvolution
     config::NamedTuple
@@ -14,6 +15,22 @@ mutable struct NSGA2Evolution{T<:Individual} <: Cambrian.AbstractEvolution
     offsprings::Dict{UInt64,Bool}
 end
 
+function isless(i2::Individual, i1::Individual)
+    k = length(i1.fitness)
+    dom = false
+    for i in 1:k
+        if i1.fitness[i] > i2.fitness[i]
+            return true
+        end
+    end
+    return false
+end
+
+function tournament(pop::Array{T},t_size::Int) where {T <: Individual}
+    inds = shuffle!(collect(1:length(pop)))
+    sort(pop[inds[1:t_size]])[end]
+end
+
 
 populate(e::NSGA2Evolution) = NSGA2Populate(e)
 evaluate(e::NSGA2Evolution) = NSGA2Evaluate(e)
@@ -24,6 +41,18 @@ function NSGA2Evolution{T}(cfg::NamedTuple, fitness::Function;
                       logfile=string("logs/", cfg.id, ".csv")) where {T <: Individual}
     logger = CambrianLogger(logfile)
     population = Cambrian.initialize(T, cfg)
+    rank=Dict{UInt64,Int64}()
+    distance=Dict{UInt64,Float64}()
+    offsprings=Dict{UInt64,Bool}()
+    for x in population
+        offsprings[objectid(x)]=true
+    end
+    NSGA2Evolution(cfg, logger, population, fitness,T,rank,distance, 0, offsprings)
+end
+
+function NSGA2Evolution{T}(cfg::NamedTuple, fitness::Function, population::Array{T};
+                      logfile=string("logs/", cfg.id, ".csv")) where {T <: Individual}
+    logger = CambrianLogger(logfile)
     rank=Dict{UInt64,Int64}()
     distance=Dict{UInt64,Float64}()
     offsprings=Dict{UInt64,Bool}()
